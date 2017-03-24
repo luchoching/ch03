@@ -1,0 +1,22 @@
+{
+  "name": "code",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test1": "node index http://www.example.com",
+    "test2": "node index https://webpack.js.org",
+    "rm": "rm www.example.com.html",
+    "rm2": "rm -r webpack.js.org && rm webpack.js.org.html"
+  },
+  "devDependencies": {
+    "eslint": "^3.17.1"
+  },
+  "dependencies": {
+    "async": "^2.1.5",
+    "cheerio": "^0.22.0",
+    "mkdirp": "^0.5.1",
+    "request": "^2.81.0",
+    "slug": "^0.9.1"
+  }
+}
