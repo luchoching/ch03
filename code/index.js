@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const request = require('request');
 const fs = require('fs');
@@ -9,30 +9,21 @@ const utilities = require('./utilities');
 function spider(url, callback) {
   const filename = utilities.urlToFilename(url);
   fs.exists(filename, exists => { //[1]
-    if (!exists) {
-      console.log(`Downloading ${url}`);
-      request(url, (err, response, body) => { //[2]
-        if (err) {
-          callback(err);
-        } else {
-          mkdirp(path.dirname(filename), err => { //[3]
-            if (err) {
-              callback(err);
-            } else {
-              fs.writeFile(filename, body, err => { //[4]
-                if (err) {
-                  callback(err);
-                } else {
-                  callback(null, filename, true);
-                }
-              });
-            }
-          });
-        }
+    if (exists) return callback(null, filename, false);
+    console.log(`Downloading ${url}`);
+    request(url, (err, response, body) => { //[2]
+      if (err) return callback(err);
+      mkdirp(path.dirname(filename), err => { //[3]
+        if (err) return callback(err);
+        fs.writeFile(filename, body, err => { //[4]
+          if (err) {
+            callback(err);
+          } else {
+            callback(null, filename, true);
+          }
+        });
       });
-    } else {
-      callback(null, filename, false);
-    }
+    });
   });
 }
 
