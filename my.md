@@ -1,41 +1,24 @@
-# Asynchronous Programming的困難點
-
-Closure + 就地定義的匿名函數寫起來快又精簡, 不用另外命名寫function, 不用跳來跳去看code
-
-但也容易就可以寫得很亂, 喪失模組化, 重用性,  可維護性
-
-[source](http://stackabuse.com/avoiding-callback-hell-in-node-js/):
-
-``` js
-const fs = require('fs');
-
-const myFile = '/tmp/test';  
-fs.readFile(myFile, 'utf8', function(err, txt) {  
-    if (err) return console.log(err);
-
-    txt = txt + '\nAppended something!';
-    fs.writeFile(myFile, txt, function(err) {
-        if(err) return console.log(err);
-        console.log('Appended text!');
-    });
-});
-```
-
-callback只要疊兩層看了頭就會痛了
-
 ## 寫Asynchronous Programming的目標
 
   Recognizing that our code is becoming unwieldy, or even better, knowing in advance that it might become unwieldy and then acting accordingly with the most adequate solution is what differentiates a novice from an expert. 
 
 認識到我們的代碼變得笨拙，甚至更好，事先知道它可能變得笨拙，然後採取最適當的解決方案是一個新手與專家的區別。
 
-## Web Spider ver1
+# Web Spider Ver1
 
 寫一個spider當例子: 接收一個Web URL作為輸入，並將其內容下載到一個文件中。
 
 ```
 cd code && git checkout spider-init
 ```
+
+# 觀察Asynchronous Programming的困難點
+
+Closure + 就地定義的匿名函數寫起來快又精簡, 不用另外命名寫function, 不用跳來跳去看code
+
+但也容易就可以寫得很亂, 喪失模組化, 重用性,  可維護性
+
+callback只要疊兩層看了頭就會痛了
 
 ## The Callback hell 
 
@@ -47,7 +30,7 @@ spider() function:  即使邏輯直覺簡單, 還是有好幾層的縮排, 難�
 
     The situation where the abundance of closures and in-place callback definitions transform the code into an unreadable and unmanageable blob is known as callback hell. 
 
-其中大量的閉包和就地回調定義將代碼轉換為不可讀和不可管理的blob的情況被稱為回調地獄(callback hello)。
+其中大量的閉包和就地回調定義將代碼轉換為不可讀和不可管理的blob的情況被稱為回調地獄( **callback hell** )。
 
 
 它是Node.js和JavaScript中最常被公認和嚴重的反模式(anti-patterns)之一:
@@ -63,8 +46,6 @@ asyncFoo( err => {
 ```
 
 **pyramid of doom** (末日金字塔):
-
-![callback hell](https://www.twilio.com/blog/wp-content/uploads/2016/09/31orCejQRkSvmchYeZC2GKswNtst-d_xEoSPoP3X-bAm9RRe8hxz59vVZrrRm78VvJgVbuUo5R7dAikR2gY1rxtqQ14yMJP8K4CS3Siiir_wRpB6IYgoWGlpokE51vV4eYAI2lpP-1.png)
 
 程式可讀性差, 除非借助工具, 不然追蹤function頭尾很難
 
