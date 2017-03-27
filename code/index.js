@@ -14,6 +14,7 @@ function saveFile(filename, body, callback) {
 }
 
 function download(url, filename, callback) {
+  console.log(`Downloading ${url}`);
   request(url, (err, response, body) => {
     if (err) return callback(err);
     saveFile(filename, body, (err) => {
@@ -24,7 +25,24 @@ function download(url, filename, callback) {
   });
 }
 
-function spider(url, callback) {
+function spiderLinks(url, body, nesting, callback) {
+  if (nesting === 0) {
+    return process.nextTick(callback);
+  }
+  let links = utilities.getPageLinks(url, body);
+
+  function iterate(index) {
+    if (index === links.length) return callback();
+    spider(links[index], nesting - 1, (err) => {
+      if (err) return callback(err);
+      iterate(index + 1);
+    });
+  }
+
+  iterate(0);
+}
+
+function spider(url, nesting, callback) {
   const filename = utilities.urlToFilename(url);
   fs.readFile(filename, 'utf-8', (err, data) => {
     if (err) {
@@ -33,15 +51,17 @@ function spider(url, callback) {
       }
       return download(url, filename, (err, body) => {
         if (err) return callback(err);
-        console.log(body);
-        callback(null, filename, true);
+        // console.log(body);
+        // callback(null, filename, true);
+        spiderLinks(url, body, nesting, callback);
       });
     }
-    callback(null, filename, false);
+    // callback(null, filename, false);
+    spiderLinks(url, data, nesting, callback);
   });
 }
 
-spider(process.argv[2], (err, filename, downloaded) => {
+spider(process.argv[2], 1, (err, filename, downloaded) => {
   if (err) {
     console.log(err);
   } else if (downloaded) {
@@ -50,4 +70,3 @@ spider(process.argv[2], (err, filename, downloaded) => {
     console.log(`"${filename}" was already downloaded`);
   }
 });
-
