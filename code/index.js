@@ -6,6 +6,13 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const utilities = require('./utilities');
 
+function saveFile(filename, body, callback) {
+  mkdirp(path.dirname(filename), (err) => {
+    if (err) return callback(err);
+    fs.writeFile(filename, body, callback);
+  });
+}
+
 function spider(url, callback) {
   const filename = utilities.urlToFilename(url);
   fs.exists(filename, exists => { //[1]
@@ -13,15 +20,9 @@ function spider(url, callback) {
     console.log(`Downloading ${url}`);
     request(url, (err, response, body) => { //[2]
       if (err) return callback(err);
-      mkdirp(path.dirname(filename), err => { //[3]
+      saveFile(filename, body, (err) => {
         if (err) return callback(err);
-        fs.writeFile(filename, body, err => { //[4]
-          if (err) {
-            callback(err);
-          } else {
-            callback(null, filename, true);
-          }
-        });
+        callback(null, filename, true);
       });
     });
   });
