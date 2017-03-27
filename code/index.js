@@ -26,14 +26,18 @@ function download(url, filename, callback) {
 
 function spider(url, callback) {
   const filename = utilities.urlToFilename(url);
-  fs.exists(filename, exists => { //[1]
-    if (exists) return callback(null, filename, false);
-    console.log(`Downloading ${url}`);
-    download(url, filename, (err, body) => {
-      if (err) return callback(err);
-      console.log(body);
-      callback(null, filename, true);
-    });
+  fs.readFile(filename, 'utf-8', (err, data) => {
+    if (err) {
+      if (err.code !== 'ENOENT') {
+        return callback(err);
+      }
+      return download(url, filename, (err, body) => {
+        if (err) return callback(err);
+        console.log(body);
+        callback(null, filename, true);
+      });
+    }
+    callback(null, filename, false);
   });
 }
 
