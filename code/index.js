@@ -13,17 +13,26 @@ function saveFile(filename, body, callback) {
   });
 }
 
+function download(url, filename, callback) {
+  request(url, (err, response, body) => {
+    if (err) return callback(err);
+    saveFile(filename, body, (err) => {
+      if (err) return callback(err);
+      callback(null, body);
+      // callback(null);
+    });
+  });
+}
+
 function spider(url, callback) {
   const filename = utilities.urlToFilename(url);
   fs.exists(filename, exists => { //[1]
     if (exists) return callback(null, filename, false);
     console.log(`Downloading ${url}`);
-    request(url, (err, response, body) => { //[2]
+    download(url, filename, (err, body) => {
       if (err) return callback(err);
-      saveFile(filename, body, (err) => {
-        if (err) return callback(err);
-        callback(null, filename, true);
-      });
+      console.log(body);
+      callback(null, filename, true);
     });
   });
 }
@@ -37,3 +46,4 @@ spider(process.argv[2], (err, filename, downloaded) => {
     console.log(`"${filename}" was already downloaded`);
   }
 });
+
