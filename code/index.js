@@ -49,7 +49,14 @@ function spiderLinks(url, body, nesting, callback) {
   }
 }
 
+const spidering = new Map();
+
 function spider(url, nesting, callback) {
+  if(spidering.has(url)){
+    return process.nextTick(callback);
+  }
+  spidering.set(url, true);
+
   const filename = utilities.urlToFilename(url);
   fs.readFile(filename, 'utf-8', (err, data) => {
     if (err) {
