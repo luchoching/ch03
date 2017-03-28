@@ -31,15 +31,22 @@ function spiderLinks(url, body, nesting, callback) {
   }
   let links = utilities.getPageLinks(url, body);
 
-  function iterate(index) {
-    if (index === links.length) return callback();
-    spider(links[index], nesting - 1, (err) => {
-      if (err) return callback(err);
-      iterate(index + 1);
-    });
+  let completed = 0,
+    hasErrors = false;
+
+  function done(err) {
+    if (err) {
+      hasErrors = true;
+      return callback(err);
+    }
+    if (++completed === links.length && !hasErrors) {
+      return callback();
+    }
   }
 
-  iterate(0);
+  for (const link of links) {
+    spider(link, nesting - 1, done);
+  }
 }
 
 function spider(url, nesting, callback) {
