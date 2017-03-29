@@ -5,6 +5,8 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const utilities = require('./utilities');
+const TaskQueue = require('./taskQueue');
+let downloadQueue = new TaskQueue(2);
 
 function saveFile(filename, body, callback) {
   mkdirp(path.dirname(filename), (err) => {
@@ -34,21 +36,20 @@ function spiderLinks(url, body, nesting, callback) {
     return process.nextTick(callback);
   }
 
-  let completed = 0,
-    hasErrors = false;
-
-  function done(err) {
-    if (err) {
-      hasErrors = true;
-      return callback(err);
-    }
-    if (++completed === links.length && !hasErrors) {
-      return callback();
-    }
-  }
-
+  let completed = 0, hasErrors = false;
   for (const link of links) {
-    spider(link, nesting - 1, done);
+    downloadQueue.pushTask((done) => {
+      spider(link, nesting -1, (err) => {
+        if (err) {
+          hasErrors = true;
+          return callback(err);
+        }
+        if (++completed === links.length && !hasErrors) {
+          callback();
+        }
+        done();
+      });
+    });
   }
 }
 
