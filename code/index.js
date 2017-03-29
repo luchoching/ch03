@@ -30,6 +30,9 @@ function spiderLinks(url, body, nesting, callback) {
     return process.nextTick(callback);
   }
   let links = utilities.getPageLinks(url, body);
+  if(links.length === 0) {
+    return process.nextTick(callback);
+  }
 
   let completed = 0,
     hasErrors = false;
