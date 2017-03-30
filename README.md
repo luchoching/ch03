@@ -5,15 +5,27 @@
 
 ## 使用方式
 
-### [我的摘要](./docs/1.md)
+### 我的摘要
+
+[Part 1](./docs/1.md)
+
+[Part 2](./docs/2.md)
+
+[Part 3](./docs/3.md)
+
+[Part 4](./docs/4.md)
+
+[Part 5](./docs/5.md)
+
+[Part 6](./docs/6.md)
 
 ### 範例程式
 
-整個Ch3就是用一個不斷演進的程式碼來說明, 我把它整理在 `code`目錄, 查看git log 
-你可以把這個repo先clone回去, 然後`git tag -l`就可以看到標記的tag, 可以對照一下書, `git checkout <tagName>` 然後`yarn install`就可以開始測試與遊玩了。
-
-有寫了很簡單的npm scripts來幫助測試, 本書用一個網頁爬蟲做例子, 在還沒有遞迴抓網頁子連結的爬蟲程式, 可用`yarn run test1`執行例子, `yarn run rm`把抓下來的網頁殺掉。
-
-有遞迴抓網頁子連結的爬蟲程式, 可用`yarn run test2`執行例子, `yarn run rm2`把抓下來的網頁殺掉。
-
-
+```
+$ yarn install
+$ cd code 
+$ yarn run test1
+$ yarn run rm
+$ yarn run test2
+$ yarn run rm2
+```
