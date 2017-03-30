@@ -5,22 +5,31 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const utilities = require('./utilities');
-
-function saveFile(filename, body, callback) {
-  mkdirp(path.dirname(filename), (err) => {
-    if (err) return callback(err);
-    fs.writeFile(filename, body, callback);
-  });
-}
+const async = require('async');
 
 function download(url, filename, callback) {
-  request(url, (err, response, body) => {
-    if (err) return callback(err);
-    saveFile(filename, body, (err) => {
-      if (err) return callback(err);
-      callback(null, body);
-      // callback(null);
-    });
+  async.waterfall([
+    (cb) => {
+      request(url, (err, response, body) => {
+        if (err) return cb(err);
+        cb(null, body);
+      });
+    },
+    (body, cb) => {
+      mkdirp(path.dirname(filename), (err) => {
+        if (err) return cb(err);
+        cb(null, body);
+      });
+    },
+    (body, cb) => {
+      fs.writeFile(filename, body, (err) => {
+        if(err) return cb(err);
+        cb(null, body);
+      });
+    }
+  ], (err, body) => {
+    if(err) return callback(err);
+    callback(null, body);
   });
 }
 
