@@ -5,32 +5,23 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const utilities = require('./utilities');
-const async = require('async');
+
+function saveFile(filename, body, callback) {
+  mkdirp(path.dirname(filename), (err) => {
+    if (err) return callback(err);
+    fs.writeFile(filename, body, callback);
+  });
+}
 
 function download(url, filename, callback) {
-  async.waterfall([
-    (cb) => {
-      console.log(`Downloading ${url}`);
-      request(url, (err, response, body) => {
-        if (err) return cb(err);
-        cb(null, body);
-      });
-    },
-    (body, cb) => {
-      mkdirp(path.dirname(filename), (err) => {
-        if (err) return cb(err);
-        cb(null, body);
-      });
-    },
-    (body, cb) => {
-      fs.writeFile(filename, body, (err) => {
-        if(err) return cb(err);
-        cb(null, body);
-      });
-    }
-  ], (err, body) => {
-    if(err) return callback(err);
-    callback(null, body);
+  console.log(`Downloading ${url}`);
+  request(url, (err, response, body) => {
+    if (err) return callback(err);
+    saveFile(filename, body, (err) => {
+      if (err) return callback(err);
+      callback(null, body);
+      // callback(null);
+    });
   });
 }
 
@@ -39,6 +30,9 @@ function spiderLinks(url, body, nesting, callback) {
     return process.nextTick(callback);
   }
   let links = utilities.getPageLinks(url, body);
+  if(links.length === 0) {
+    return process.nextTick(callback);
+  }
 
   function iterate(index) {
     if (index === links.length) return callback();
@@ -60,9 +54,12 @@ function spider(url, nesting, callback) {
       }
       return download(url, filename, (err, body) => {
         if (err) return callback(err);
+        // console.log(body);
+        // callback(null, filename, true);
         spiderLinks(url, body, nesting, callback);
       });
     }
+    // callback(null, filename, false);
     spiderLinks(url, data, nesting, callback);
   });
 }
