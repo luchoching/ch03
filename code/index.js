@@ -5,6 +5,7 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const utilities = require('./utilities');
+const async = require('async');
 
 function saveFile(filename, body, callback) {
   mkdirp(path.dirname(filename), (err) => {
@@ -34,15 +35,23 @@ function spiderLinks(url, body, nesting, callback) {
     return process.nextTick(callback);
   }
 
-  function iterate(index) {
-    if (index === links.length) return callback();
-    spider(links[index], nesting - 1, (err) => {
-      if (err) return callback(err);
-      iterate(index + 1);
-    });
-  }
+  async.eachSeries(links, (link, cb) => {
+    spider(link, nesting -1, cb);
+  }, (err) => {
+    if(err) return callback(err);
+    callback();
+  });
 
-  iterate(0);
+
+  // function iterate(index) {
+  //   if (index === links.length) return callback();
+  //   spider(links[index], nesting - 1, (err) => {
+  //     if (err) return callback(err);
+  //     iterate(index + 1);
+  //   });
+  // }
+
+  // iterate(0);
 }
 
 function spider(url, nesting, callback) {
