@@ -26,6 +26,10 @@ function download(url, filename, callback) {
   });
 }
 
+const queue = async.queue((data, cb) => {
+  spider(data.link, data.nesting - 1, cb);
+}, 2);
+
 function spiderLinks(url, body, nesting, callback) {
   if (nesting === 0) {
     return process.nextTick(callback);
@@ -35,15 +39,29 @@ function spiderLinks(url, body, nesting, callback) {
     return process.nextTick(callback);
   }
 
-  async.each(links, (link, cb) => {
-    spider(link, nesting -1, cb);
-  }, (err) => {
-    if(err) return callback(err);
-    callback();
-  });
+  let completed = 0, hasErrors = false;
+  for (const link of links) {
+    const data = { link, nesting };
+    queue.push(data, (err) => {
+      if (err) {
+        hasErrors = true;
+        return callback(err);
+      }
+      if (++completed === links.length && !hasErrors) {
+        callback();
+      }
+    });
+  }
 }
 
+const spidering = new Map();
+
 function spider(url, nesting, callback) {
+  if (spidering.has(url)) {
+    return process.nextTick(callback);
+  }
+  spidering.set(url, true);
+
   const filename = utilities.urlToFilename(url);
   fs.readFile(filename, 'utf-8', (err, data) => {
     if (err) {
