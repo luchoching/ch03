@@ -5,8 +5,6 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const utilities = require('./utilities');
-const TaskQueue = require('./taskQueue');
-let downloadQueue = new TaskQueue(2);
 
 function saveFile(filename, body, callback) {
   mkdirp(path.dirname(filename), (err) => {
@@ -16,7 +14,6 @@ function saveFile(filename, body, callback) {
 }
 
 function download(url, filename, callback) {
-  console.log(`Downloading ${url}`);
   request(url, (err, response, body) => {
     if (err) return callback(err);
     saveFile(filename, body, (err) => {
@@ -27,59 +24,20 @@ function download(url, filename, callback) {
   });
 }
 
-function spiderLinks(url, body, nesting, callback) {
-  if (nesting === 0) {
-    return process.nextTick(callback);
-  }
-  let links = utilities.getPageLinks(url, body);
-  if(links.length === 0) {
-    return process.nextTick(callback);
-  }
-
-  let completed = 0, hasErrors = false;
-  for (const link of links) {
-    downloadQueue.pushTask((done) => {
-      spider(link, nesting -1, (err) => {
-        if (err) {
-          hasErrors = true;
-          return callback(err);
-        }
-        if (++completed === links.length && !hasErrors) {
-          callback();
-        }
-        done();
-      });
-    });
-  }
-}
-
-const spidering = new Map();
-
-function spider(url, nesting, callback) {
-  if(spidering.has(url)){
-    return process.nextTick(callback);
-  }
-  spidering.set(url, true);
-
+function spider(url, callback) {
   const filename = utilities.urlToFilename(url);
-  fs.readFile(filename, 'utf-8', (err, data) => {
-    if (err) {
-      if (err.code !== 'ENOENT') {
-        return callback(err);
-      }
-      return download(url, filename, (err, body) => {
-        if (err) return callback(err);
-        // console.log(body);
-        // callback(null, filename, true);
-        spiderLinks(url, body, nesting, callback);
-      });
-    }
-    // callback(null, filename, false);
-    spiderLinks(url, data, nesting, callback);
+  fs.exists(filename, exists => { //[1]
+    if (exists) return callback(null, filename, false);
+    console.log(`Downloading ${url}`);
+    download(url, filename, (err, body) => {
+      if (err) return callback(err);
+      console.log(body);
+      callback(null, filename, true);
+    });
   });
 }
 
-spider(process.argv[2], 1, (err, filename, downloaded) => {
+spider(process.argv[2], (err, filename, downloaded) => {
   if (err) {
     console.log(err);
   } else if (downloaded) {
@@ -88,3 +46,4 @@ spider(process.argv[2], 1, (err, filename, downloaded) => {
     console.log(`"${filename}" was already downloaded`);
   }
 });
+
