@@ -35,23 +35,12 @@ function spiderLinks(url, body, nesting, callback) {
     return process.nextTick(callback);
   }
 
-  async.eachSeries(links, (link, cb) => {
+  async.each(links, (link, cb) => {
     spider(link, nesting -1, cb);
   }, (err) => {
     if(err) return callback(err);
     callback();
   });
-
-
-  // function iterate(index) {
-  //   if (index === links.length) return callback();
-  //   spider(links[index], nesting - 1, (err) => {
-  //     if (err) return callback(err);
-  //     iterate(index + 1);
-  //   });
-  // }
-
-  // iterate(0);
 }
 
 function spider(url, nesting, callback) {
