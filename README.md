@@ -22,8 +22,12 @@
 ### 範例程式
 
 ```
-$ yarn install
 $ cd code 
+$ yarn install
+
+$ git tag --sort=-taggerdate
+$ git checkout <tag-name>
+
 $ yarn run test1
 $ yarn run rm
 $ yarn run test2
